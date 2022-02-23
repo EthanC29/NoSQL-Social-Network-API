@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const { User } = require('./models');
+const db = require('./models');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -20,11 +20,10 @@ mongoose.set('debug', true);
 
 
 
-
-// Routes Here
+// User Routes START
 // GET all users
 app.get('/api/users', (req, res) => {
-  User.find()
+  db.User.find()
     .then(dbUserData => {
       res.json(dbUserData);
     })
@@ -32,10 +31,13 @@ app.get('/api/users', (req, res) => {
       res.json(err);
     });
 });
-
-// GET a single user by id
+// GET a single user by its _id and populated thought and friend data
 app.get('/api/users/:id', (req, res) => {
-  User.findById({ _id: req.params.id })
+  db.User.findById({ _id: req.params.id })
+    .populate({
+      path: 'thoughts',
+      path: 'friends'
+    })
     .then(dbUserData => {
       if (!dbUserData) {
         return res.status(404).json({ message: "No user with this id!"});
@@ -47,19 +49,79 @@ app.get('/api/users/:id', (req, res) => {
       res.status(500).json(err);
     });
 });
-
 // POST a new user
+app.post('/api/users', ({ body }, res) => {
+  db.User.create(body)
+    .then(dbUserData => {
+      res.json(dbUserData);
+    })
+    .catch(err => {
+      res.json(err);
+    });
+});
+// PUT to update a user by its _id
+app.post('/api/users/:id', ({ params, body }, res) => {
+  db.User.findOneAndUpdate({ _id: params.id }, body, { new: true })
+    .then(dbUser => {
+      if (!dbUser) {
+        res.json({ message: 'No user found with this id!' });
+        return;
+      }
+      res.json(dbUser);
+    })
+    .catch(err => {
+      res.json(err);
+    });
+});
+// DELETE to remove user by its _id
+app.delete('/api/users/:id', ({ params }, res) => {
+  db.User.findOneAndDelete({ _id: params.id })
+    .then(dbUser => {
+      if (!dbUser) {
+        res.json({ message: 'No user found with this id!' });
+        return;
+      }
+      res.json(dbUser);
+    })
+    .catch(err => {
+      res.json(err);
+    });
+});
+// User Routes END
 
 
-// PUT to update a user by id
+
+// Friend Routes START
+// POST to add a new friend to a user's friend list
+
+// DELETE to remove a friend from a user's friend list
+
+// Friend Routes END
 
 
-//DELETE to remove a user by id
+
+// Thought Routes START
+// GET to get all thoughts
+
+// GET to get a single thought by its _id
+
+// POST to create a new thought (don't forget to push the created thought's _id to the associated user's thoughts array field)
+
+// PUT to update a thought by its _id
+
+// DELETE to remove a thought by its _id
+
+// Thought Routes END
 
 
 
+// Reaction Routes START
+// POST to create a reaction stored in a single thought's reactions array field
 
-// Routes End Here
+// DELETE to pull and remove a reaction by the reaction's reactionId value
+
+// Reaction Routes END
+
 
 
 app.listen(PORT, () => {
