@@ -93,9 +93,41 @@ app.delete('/api/users/:id', ({ params }, res) => {
 
 // Friend Routes START
 // POST to add a new friend to a user's friend list
-
+app.post('/api/users/:userId/friends/:friendId', (req, res) => {
+  db.User.findOneAndUpdate(
+    { _id: req.params.userId },
+    { $addToSet: { friends: req.params.friendsId } },
+    { runValidators: true, new: true }
+  )
+    .then(dbUserData => {
+      if (!dbUserData) {
+        return res.status(404).json({ message: "No user with this id!"});
+      }
+      res.json(dbUserData);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json(err);
+    });
+});
 // DELETE to remove a friend from a user's friend list
-
+app.delete('/api/users/:userId/friends/:friendId', (req, res) => {
+  db.User.findOneAndUpdate(
+    { _id: req.params.userId },
+    { $pull: { friends: { friendId: req.params.friendId } } },
+    { runValidators: true, new: true }
+  )
+    .then(dbUserData => {
+      if (!dbUserData) {
+        return res.status(404).json({ message: "No user with this id!"});
+      }
+      res.json(dbUserData);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json(err);
+    });
+});
 // Friend Routes END
 
 
