@@ -211,9 +211,13 @@ app.delete('/api/thoughts/:thoughtId', (req, res) => {
 
 // Reaction Routes START
 // POST to create a reaction stored in a single thought's reactions array field
-
+app.post('/api/thoughts/:thoughtId/reactions', (req, res) => {
+  
+});
 // DELETE to pull and remove a reaction by the reaction's reactionId value
+app.delete('/api/thoughts/:thoughtId/reactions', (req, res) => {
 
+});
 // Reaction Routes END
 
 
