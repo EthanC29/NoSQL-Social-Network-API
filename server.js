@@ -134,15 +134,77 @@ app.delete('/api/users/:userId/friends/:friendId', (req, res) => {
 
 // Thought Routes START
 // GET to get all thoughts
-
+app.get('/api/thoughts', (req, res) => {
+  db.Thought.find()
+    .then(dbThoughtData => {
+      res.json(dbThoughtData);
+    })
+    .catch(err => {
+      res.json(err);
+    });
+});
 // GET to get a single thought by its _id
-
+app.get('/api/thoughts/:id', (req, res) => {
+  db.Thought.findById({ _id: req.params.id })
+    .then(dbThoughtData => {
+      if (!dbThoughtData) {
+        return res.status(404).json({ message: "No thought with this id!"});
+      }
+      res.json(dbThoughtData);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json(err);
+    });
+});
 // POST to create a new thought (don't forget to push the created thought's _id to the associated user's thoughts array field)
 
+// app.post('/api/users/:userId/thoughts', (req, res) => {
+//   db.Thought.findOneAndUpdate(
+//     { _id: req.params.userId },
+//     { $push: { thoughts: req.body } },
+//     { runValidators: true, new: true }
+//   )
+//     .then(dbThoughtData => {
+//       if (!dbThoughtData) {
+//         return res.status(404).json({ message: "No thought with this id!"});
+//       }
+//       res.json(dbThoughtData);
+//     })
+//     .catch(err => {
+//       console.log(err);
+//       res.status(500).json(err);
+//     });
+// });
+
 // PUT to update a thought by its _id
-
+app.put('/api/thoughts/:thoughtId', (req, res) => {
+  db.Thought.findOneAndUpdate({ _id: req.params.thoughtId }, req.body, { new: true })
+    .then(dbThoughtData => {
+      if (!dbThoughtData) {
+        res.json({ message: 'No thought found with this id!' });
+        return;
+      }
+      res.json(dbThoughtData);
+    })
+    .catch(err => {
+      res.json(err);
+    });
+});
 // DELETE to remove a thought by its _id
-
+app.delete('/api/thoughts/:thoughtId', (req, res) => {
+  Note.findOneAndDelete({ _id: req.params.thoughtId })
+    .then(dbThoughtData => {
+      if (!dbThoughtData) {
+        res.json({ message: 'No thought found with this id!' });
+        return;
+      }
+      res.json(dbThoughtData);
+    })
+    .catch(err => {
+      res.json(err);
+    });
+});
 // Thought Routes END
 
 
