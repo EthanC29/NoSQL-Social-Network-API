@@ -20,7 +20,7 @@ mongoose.set('debug', true);
 
 
 
-// User Routes START
+// ----- User Routes START -----
 // GET all users
 app.get('/api/users', (req, res) => {
   db.User.find()
@@ -75,15 +75,13 @@ app.post('/api/users/:userId', (req, res) => {
 });
 // DELETE to remove user by its _id
 app.delete('/api/users/:userId', (req, res) => {
+  // BONUS: Remove a user's associated thoughts when deleted
   // db.User.findOneAndUpdate(
   //   { _id: req.params.userId },
-  //   { $pull: thoughts },
+  //   { $set: { thoughts: [] },
   //   { runValidators: true, new: true }
   // )
   //   .then(dbThoughtData => {
-  //     if (!dbThoughtData) {
-  //       return res.status(404);
-  //     }
   //     res.json(dbThoughtData);
   //   })
   //   .catch(err => {
@@ -102,11 +100,11 @@ app.delete('/api/users/:userId', (req, res) => {
       res.json(err);
     });
 });
-// User Routes END
+// ----- User Routes END -----
 
 
 
-// Friend Routes START
+// ----- Friend Routes START -----
 // POST to add a new friend to a user's friend list
 app.post('/api/users/:userId/friends/:friendId', (req, res) => {
   db.User.findOneAndUpdate(
@@ -143,11 +141,11 @@ app.delete('/api/users/:userId/friends/:friendId', (req, res) => {
       res.status(500).json(err);
     });
 });
-// Friend Routes END
+// ----- Friend Routes END -----
 
 
 
-// Thought Routes START
+// ----- Thought Routes START -----
 // GET to get all thoughts
 app.get('/api/thoughts', (req, res) => {
   db.Thought.find()
@@ -194,7 +192,12 @@ app.get('/api/thoughts/:thoughtId', (req, res) => {
 
 app.post('/api/thoughts/', (req, res) => {
   db.Thought.create(req.body)
-    .then
+    .then(dbThoughtData => {
+      res.json(dbThoughtData);
+    })
+    .catch(err => {
+      res.json(err);
+    });
 });
 
 // PUT to update a thought by its _id
@@ -225,11 +228,11 @@ app.delete('/api/thoughts/:thoughtId', (req, res) => {
       res.json(err);
     });
 });
-// Thought Routes END
+// ----- Thought Routes END -----
 
 
 
-// Reaction Routes START
+// ----- Reaction Routes START -----
 // POST to create a reaction stored in a single thought's reactions array field
 app.post('/api/thoughts/:thoughtId/reactions', (req, res) => {
   db.Thought.findOneAndUpdate(
@@ -266,7 +269,7 @@ app.delete('/api/thoughts/:thoughtId/reactions/:reactionId', (req, res) => {
       res.status(500).json(err);
     });
 });
-// Reaction Routes END
+// ----- Reaction Routes END -----
 
 
 
