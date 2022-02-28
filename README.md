@@ -2,6 +2,8 @@
 
 ## Description
 
+An NoSQL-based API for a social media platform that uses Mongoose and MongoDB. Includes functionalioty for creating and deleting users, matching and removing users to other users as friends, creating and deleting thoughts and linking them to the user that wrote them, and creating and deleting reactions linked to each thought. It also includes the functionality to update the data of users or thoughts at any time. 
+
 ## User Story
 
 ```
@@ -26,11 +28,15 @@ THEN I am able to successfully create and delete reactions to thoughts and add a
 
 ## Screenshots
 
-
+![Create a User](/screenshots/create-user.png)
+![Add a Friend to a User](/screenshots/add-friend.png)
+![Find all Users](/screenshots/find-all-users.png)
+![Show Reaction and linked Thought](/screenshots/create-reaction.png)
 
 ## Links
 
-
+- [Walkthrough/Demonstration Video](https://youtu.be/u0ZkI_g8Tyw)
+- [Github Repo](https://github.com/EthanC29/NoSQL-Social-Network-API)
 
 ## Contributions
 
