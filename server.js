@@ -9,13 +9,8 @@ const db = require('./models');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/apidb', {
-  useFindAndModify: false,
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/apidb');
 
-mongoose.set('useCreateIndex', true);
 mongoose.set('debug', true);
 
 
@@ -40,7 +35,8 @@ app.get('/api/users/:userId', (req, res) => {
     })
     .then(dbUserData => {
       if (!dbUserData) {
-        return res.status(404).json({ message: "No user with this id!"});
+        res.status(404).json({ message: "No user with this id!"});
+        return;
       }
       res.json(dbUserData);
     })
@@ -60,11 +56,11 @@ app.post('/api/users', (req, res) => {
     });
 });
 // PUT to update a user by its _id
-app.post('/api/users/:userId', (req, res) => {
+app.put('/api/users/:userId', (req, res) => {
   db.User.findOneAndUpdate({ _id: req.params.userId }, req.body, { new: true })
     .then(dbUser => {
-      if (!dbUser) {
-        res.json({ message: 'No user with this id!' });
+      if (!dbUserData) {
+        res.status(404).json({ message: "No user with this id!"});
         return;
       }
       res.json(dbUser);
@@ -90,8 +86,8 @@ app.delete('/api/users/:userId', (req, res) => {
   //   });
   db.User.findOneAndDelete({ _id: req.params.userId })
     .then(dbUser => {
-      if (!dbUser) {
-        res.json({ message: 'No user with this id!' });
+      if (!dbUserData) {
+        res.status(404).json({ message: "No user with this id!"});
         return;
       }
       res.json(dbUser);
@@ -109,12 +105,13 @@ app.delete('/api/users/:userId', (req, res) => {
 app.post('/api/users/:userId/friends/:friendId', (req, res) => {
   db.User.findOneAndUpdate(
     { _id: req.params.userId },
-    { $addToSet: { friends: req.params.friendsId } },
+    { $addToSet: { friends: req.params.friendId } },
     { runValidators: true, new: true }
   )
     .then(dbUserData => {
       if (!dbUserData) {
-        return res.status(404).json({ message: "No user with this id!"});
+        res.status(404).json({ message: "No user with this id!"});
+        return;
       }
       res.json(dbUserData);
     })
@@ -127,12 +124,13 @@ app.post('/api/users/:userId/friends/:friendId', (req, res) => {
 app.delete('/api/users/:userId/friends/:friendId', (req, res) => {
   db.User.findOneAndUpdate(
     { _id: req.params.userId },
-    { $pull: { friends: { friendId: req.params.friendId } } },
+    { $pull: { friends: req.params.friendId } },
     { runValidators: true, new: true }
   )
     .then(dbUserData => {
       if (!dbUserData) {
-        return res.status(404).json({ message: "No user with this id!"});
+        res.status(404).json({ message: "No user with this id!"});
+        return;
       }
       res.json(dbUserData);
     })
@@ -161,7 +159,8 @@ app.get('/api/thoughts/:thoughtId', (req, res) => {
   db.Thought.findById({ _id: req.params.thoughtId })
     .then(dbThoughtData => {
       if (!dbThoughtData) {
-        return res.status(404).json({ message: "No thought with this id!"});
+        res.status(404).json({ message: "No thought with this id!"});
+        return;
       }
       res.json(dbThoughtData);
     })
@@ -171,27 +170,15 @@ app.get('/api/thoughts/:thoughtId', (req, res) => {
     });
 });
 // POST to create a new thought (don't forget to push the created thought's _id to the associated user's thoughts array field)
-
-// app.post('/api/users/:userId/thoughts', (req, res) => {
-//   db.Thought.findOneAndUpdate(
-//     { _id: req.params.userId },
-//     { $push: { thoughts: req.body } },
-//     { runValidators: true, new: true }
-//   )
-//     .then(dbThoughtData => {
-//       if (!dbThoughtData) {
-//         return res.status(404).json({ message: "No thought with this id!"});
-//       }
-//       res.json(dbThoughtData);
-//     })
-//     .catch(err => {
-//       console.log(err);
-//       res.status(500).json(err);
-//     });
-// });
-
 app.post('/api/thoughts/', (req, res) => {
   db.Thought.create(req.body)
+    .then(({ _id }) => {
+      return db.User.findOneAndUpdate(
+        { _id: req.body.userId },
+        { $push: { thoughts: _id } },
+        { runValidators: true, new: true }
+      )
+    })
     .then(dbThoughtData => {
       res.json(dbThoughtData);
     })
@@ -205,7 +192,7 @@ app.put('/api/thoughts/:thoughtId', (req, res) => {
   db.Thought.findOneAndUpdate({ _id: req.params.thoughtId }, req.body, { new: true })
     .then(dbThoughtData => {
       if (!dbThoughtData) {
-        res.json({ message: 'No thought with this id!' });
+        res.status(404).json({ message: "No thought with this id!"});
         return;
       }
       res.json(dbThoughtData);
@@ -216,10 +203,10 @@ app.put('/api/thoughts/:thoughtId', (req, res) => {
 });
 // DELETE to remove a thought by its _id
 app.delete('/api/thoughts/:thoughtId', (req, res) => {
-  Note.findOneAndDelete({ _id: req.params.thoughtId })
+  db.Thought.findOneAndDelete({ _id: req.params.thoughtId })
     .then(dbThoughtData => {
       if (!dbThoughtData) {
-        res.json({ message: 'No thought with this id!' });
+        res.status(404).json({ message: "No thought with this id!"});
         return;
       }
       res.json(dbThoughtData);
@@ -238,11 +225,12 @@ app.post('/api/thoughts/:thoughtId/reactions', (req, res) => {
   db.Thought.findOneAndUpdate(
     { _id: req.params.thoughtId },
     { $addToSet: { reactions: req.body } },
-    { runValidators: true, new: true }
+    { new: true }
   )
     .then(dbThoughtData => {
       if (!dbThoughtData) {
-        return res.status(404).json({ message: "No thought with this id!"});
+        res.status(404).json({ message: "No thought with this id!"});
+        return;
       }
       res.json(dbThoughtData);
     })
@@ -255,8 +243,8 @@ app.post('/api/thoughts/:thoughtId/reactions', (req, res) => {
 app.delete('/api/thoughts/:thoughtId/reactions/:reactionId', (req, res) => {
   db.Thought.findOneAndUpdate(
     { _id: req.params.thoughtId },
-    { $pull: { reactions: { reactionId: req.params.reactionId } } },
-    { runValidators: true, new: true }
+    { $pull: { reactions: { _id: req.params.reactionId } } },
+    { new: true }
   )
     .then(dbThoughtData => {
       if (!dbThoughtData) {
